@@ -15,7 +15,7 @@ def get_link_for_lyrics(song_name, artist_name):
     # song = "52 bars"
     # artist = "Karan Aujla"
     # language = ""
-    response = search.run(f"give me the lyrics of {song_name} song by {artist_name}")
+    response = search.run(f"give me the lyrics of {song_name} song by {artist_name} genius.com")
 
     print(type(response))
     source_links = []
