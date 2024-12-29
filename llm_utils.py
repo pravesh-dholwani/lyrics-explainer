@@ -18,17 +18,45 @@ def get_link_for_lyrics(song_name, artist_name):
     response = search.run(f"give me the lyrics of {song_name} song by {artist_name}")
 
     print(type(response))
+    source_links = []
+    for r in response:
+        source_links.append(r["link"])
+    # source_link = response[0]["link"]
+    return source_links
 
-    source_link = response[0]["link"]
-    return source_link
+def get_docs_for_lyrics(source_links):
+    docs = []
+    for source_link in source_links:
+        loader = WebBaseLoader(
+        web_path = source_link)
 
-def get_docs_for_lyrics(source_link):
-    loader = WebBaseLoader(
-    web_path = source_link)
-
-    docs = loader.load()
+        docs1 = loader.load()
+        docs.extend(docs1)
 
     return docs
+
+def get_lyrics_from_docs(song, docs):
+    llm = ChatGroq(
+        model = "llama3-70b-8192",
+        verbose=True
+    )
+
+    prompt = PromptTemplate(
+        input_variables=["docs", "song"],
+        template='''Here is the context for the lyrics of a song named - {song}
+                    extract the lyrics of the song and give me the lyrics line by line
+                    {docs}
+                    '''
+    )
+
+    chain = LLMChain(llm=llm, prompt=prompt)
+
+    response = chain.invoke({'song': song, 'docs': docs})
+
+    # print("Lyrics", response)
+
+    return response["text"]
+
 
 
 def explain_lyrics(song_name, artist_name, language, docs):
@@ -75,7 +103,10 @@ def explain_lyrics(song_name, artist_name, language, docs):
 def driver(song_name, artist_name, language):
     source_link = get_link_for_lyrics(song_name, artist_name)
     docs = get_docs_for_lyrics(source_link)
-    explaination = explain_lyrics(song_name, artist_name, language, docs)
+    # print("docs", docs)
+    lyrics = get_lyrics_from_docs(song_name, docs)
+    print(lyrics)
+    explaination = explain_lyrics(song_name, artist_name, language, lyrics)
 
     return explaination
 
